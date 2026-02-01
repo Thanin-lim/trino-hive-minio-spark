@@ -10,6 +10,8 @@ conda activate py38
 # สร้าง Kernel ชื่อ "Python 3.8 (Spark)"
 python -m ipykernel install --user --name=py38 --display-name "Python 3.8 (Spark)"
 
+# token ดูได้ใน log jupyter"
+
 
 
 
