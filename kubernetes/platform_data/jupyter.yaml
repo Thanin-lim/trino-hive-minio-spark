@@ -1,8 +1,9 @@
-# --- Service (NodePort) ---
+# --- 1. Service (NodePort) ---
+# ⚠️ เปลี่ยนชื่อ Service จาก jupyter -> jupyter-svc เพื่อแก้ Bug
 apiVersion: v1
 kind: Service
 metadata:
-  name: jupyter
+  name: jupyter-svc
   namespace: platform
 spec:
   type: NodePort
@@ -12,17 +13,21 @@ spec:
     - port: 8888
       nodePort: 31010
       name: jupyter-ui
-    - port: 4040 # Spark UI
-      nodePort: 31012 # เพิ่ม Port นี้ให้เผื่อดู Spark Job
+    - port: 4040
+      nodePort: 31040
       name: spark-ui
+    - port: 20020
+      name: driver
+    - port: 20021
+      name: blockmanager
 
 ---
-# --- Deployment ---
+# --- 2. Deployment ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jupyter
-  namespace: platform # <--- เพิ่มบรรทัดนี้ ไม่งั้น Service หาไม่เจอ
+  namespace: platform
 spec:
   replicas: 1
   selector:
@@ -39,19 +44,31 @@ spec:
           ports:
             - containerPort: 8888
             - containerPort: 4040
+            - containerPort: 20020
+            - containerPort: 20021
           env:
             - name: JUPYTER_ENABLE_LAB
               value: "yes"
-            # แก้ปัญหา Permission ในการเขียนไฟล์ลง Volume
+            # แก้ Permission
             - name: CHOWN_HOME
               value: "yes"
             - name: CHOWN_HOME_OPTS
               value: "-R"
+            # --- Spark Config ---
+            - name: SPARK_DRIVER_PORT
+              value: "20020"
+            - name: SPARK_BLOCKMANAGER_PORT
+              value: "20021"
+            - name: SPARK_DRIVER_BIND_ADDRESS
+              value: "0.0.0.0"
+            # ⚠️ ต้องแก้ตรงนี้ให้ตรงกับชื่อ Service ใหม่ (jupyter-svc)
+            - name: SPARK_DRIVER_HOST
+              value: "jupyter-svc.platform.svc.cluster.local"
           volumeMounts:
             - name: jupyter-work
               mountPath: /home/jovyan/work
       volumes:
         - name: jupyter-work
           hostPath:
-            path: /data/jupyter 
+            path: /data/jupyter
             type: DirectoryOrCreate
