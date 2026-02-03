@@ -34,7 +34,7 @@ spec:
       containers:
         - name: spark-master
           image: warvba22/spark:1.0.0  
-          command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master-svc:7077"]
+          command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
           ports:
             - containerPort: 7077
             - containerPort: 8080
