@@ -1,5 +1,4 @@
 # --- 1. Service (NodePort) ---
-# ⚠️ เปลี่ยนชื่อ Service จาก jupyter -> jupyter-svc เพื่อแก้ Bug
 apiVersion: v1
 kind: Service
 metadata:
@@ -38,6 +37,10 @@ spec:
       labels:
         app: jupyter
     spec:
+      # ⚠️ [FIX 1] บังคับรันด้วย Root เพื่อให้เขียนไฟล์ลง HostPath ได้
+      securityContext:
+        runAsUser: 0
+        fsGroup: 0
       containers:
         - name: jupyter
           image: jupyter/pyspark-notebook:python-3.11
@@ -48,6 +51,9 @@ spec:
             - containerPort: 20021
           env:
             - name: JUPYTER_ENABLE_LAB
+              value: "yes"
+            # ⚠️ [FIX 2] อนุญาตให้ใช้ Sudo ได้ (จำเป็นเมื่อรันเป็น Root ใน Image นี้)
+            - name: GRANT_SUDO
               value: "yes"
             # แก้ Permission
             - name: CHOWN_HOME
@@ -61,7 +67,6 @@ spec:
               value: "20021"
             - name: SPARK_DRIVER_BIND_ADDRESS
               value: "0.0.0.0"
-            # ⚠️ ต้องแก้ตรงนี้ให้ตรงกับชื่อ Service ใหม่ (jupyter-svc)
             - name: SPARK_DRIVER_HOST
               value: "jupyter-svc.platform.svc.cluster.local"
           volumeMounts:
