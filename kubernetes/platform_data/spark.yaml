@@ -2,7 +2,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: spark-master-svc  # <--- เปลี่ยนชื่อตรงนี้ (เดิมคือ spark-master)
+  name: spark-master-svc  
+  namespace: platform          # <--- ระบุ Namespace ให้ชัดเจน# <--- เปลี่ยนชื่อตรงนี้ (เดิมคือ spark-master)
 spec:
   type: NodePort
   ports:
@@ -19,6 +20,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spark-master
+  namespace: platform          # <--- ระบุ Namespace ให้ชัดเจน
 spec:
   replicas: 1
   selector:
@@ -51,6 +53,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spark-worker
+  namespace: platform          # <--- ระบุ Namespace ให้ชัดเจน
 spec:
   replicas: 2
   selector:
@@ -64,7 +67,7 @@ spec:
       containers:
         - name: spark-worker
           image: warvba22/spark:1.0.0 
-          command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
+          command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master-svc:7077"]
           env:
             - name: SPARK_WORKER_CORES
               value: "1"
@@ -79,3 +82,5 @@ spec:
         - name: spark-apps
           hostPath:
             path: /data/spark-apps
+
+            
