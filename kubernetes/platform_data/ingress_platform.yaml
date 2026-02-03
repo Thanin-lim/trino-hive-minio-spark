@@ -57,7 +57,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: jupyter
+                name: jupyter-svc
                 port:
                   number: 8888
 
