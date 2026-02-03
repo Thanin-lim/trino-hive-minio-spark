@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: spark-master
-          image: warvba22/spark:1.0.0  
+          image: warvba22/spark:1.0.1  
           command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
           ports:
             - containerPort: 7077
@@ -66,7 +66,7 @@ spec:
     spec:
       containers:
         - name: spark-worker
-          image: warvba22/spark:1.0.0 
+          image: warvba22/spark:1.0.1 
           command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master-svc:7077"]
           env:
             - name: SPARK_WORKER_CORES
