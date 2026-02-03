@@ -58,3 +58,5 @@ spec:
                   key: minio-secret-key
             - name: S3_PATH_STYLE_ACCESS
               value: "true"
+            - name: REGION
+              value: "us-east-1"
