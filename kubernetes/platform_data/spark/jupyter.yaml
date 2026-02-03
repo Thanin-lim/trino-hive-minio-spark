@@ -1,0 +1,44 @@
+# --- Jupyter ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter
+spec:
+  type: NodePort
+  ports:
+    - port: 8888
+      nodePort: 31010
+      name: spark-ui
+  selector:
+    app: jupyter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+    spec:
+      containers:
+        - name: jupyter
+          image: nechayut/jupyter-spark:1.0.0
+          ports:
+            - containerPort: 8888
+            - containerPort: 4040
+          env:
+            - name: JUPYTER_ENABLE_LAB
+              value: "yes"
+          volumeMounts:
+            - name: jupyter-work
+              mountPath: /home/jovyan/work
+      volumes:
+        - name: jupyter-work
+          hostPath:
+            path: /data/jupyter # CHANGE THIS to your local path

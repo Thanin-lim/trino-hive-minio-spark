@@ -1,0 +1,80 @@
+# --- Trino Coordinator ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trino-coordinator
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      nodePort: 31007 # External Access
+  selector:
+    app: trino-coordinator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-coordinator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino-coordinator
+  template:
+    metadata:
+      labels:
+        app: trino-coordinator
+    spec:
+      containers:
+        - name: trino-coordinator
+          image: trinodb/trino:400
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /etc/trino/config.properties
+              subPath: coordinator-config.properties
+            - name: config
+              mountPath: /etc/trino/jvm.config
+              subPath: jvm.config
+            - name: config
+              mountPath: /etc/trino/node.properties
+              subPath: node.properties
+      volumes:
+        - name: config
+          configMap:
+            name: trino-config
+
+# --- Trino Workers ---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trino-worker
+  template:
+    metadata:
+      labels:
+        app: trino-worker
+    spec:
+      containers:
+        - name: trino-worker
+          image: trinodb/trino:400
+          volumeMounts:
+            - name: config
+              mountPath: /etc/trino/config.properties
+              subPath: worker-config.properties
+            - name: config
+              mountPath: /etc/trino/jvm.config
+              subPath: jvm.config
+            - name: config
+              mountPath: /etc/trino/node.properties
+              subPath: node.properties
+      volumes:
+        - name: config
+          configMap:
+            name: trino-config
