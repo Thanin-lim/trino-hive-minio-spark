@@ -1,0 +1,62 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-ingress
+  namespace: platform
+  annotations:
+    # บอก Kubernetes ว่าให้ใช้ Nginx ตัวที่ลงไว้
+    kubernetes.io/ingress.class: nginx
+    # อนุญาตให้อัปโหลดไฟล์ใหญ่ๆ ได้ (จำเป็นสำหรับ MinIO/Jupyter)
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    # การตั้งค่า Timeout (เผื่อ Query นาน)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+    # 1. Spark Master UI
+    # - host: spark.localhost
+    #   http:
+    #     paths:
+    #       - path: /
+    #         pathType: Prefix
+    #         backend:
+    #           service:
+    #             name: spark-master-svc  # ชื่อ Service ที่เราแก้ไปเมื่อกี้
+    #             port:
+    #               number: 8080          # Port ภายใน (ไม่ใช่ NodePort)
+
+    # 2. MinIO Console (หน้าเว็บจัดการไฟล์)
+    - host: minio.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  number: 9001          # Port 9001 คือ Console (9000 คือ API)
+
+    # 3. Trino UI
+    - host: trino.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: trino-coordinator
+                port:
+                  number: 8080
+
+    # 4. Jupyter Notebook
+    - host: jupyter.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jupyter
+                port:
+                  number: 8888
