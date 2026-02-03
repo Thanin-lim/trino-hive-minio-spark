@@ -1,23 +1,28 @@
-# --- Jupyter ---
+# --- Service (NodePort) ---
 apiVersion: v1
 kind: Service
 metadata:
   name: jupyter
-  namespace : platform
-
+  namespace: platform
 spec:
   type: NodePort
+  selector:
+    app: jupyter
   ports:
     - port: 8888
       nodePort: 31010
+      name: jupyter-ui
+    - port: 4040 # Spark UI
+      nodePort: 31012 # เพิ่ม Port นี้ให้เผื่อดู Spark Job
       name: spark-ui
-  selector:
-    app: jupyter
+
 ---
+# --- Deployment ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jupyter
+  namespace: platform # <--- เพิ่มบรรทัดนี้ ไม่งั้น Service หาไม่เจอ
 spec:
   replicas: 1
   selector:
@@ -30,17 +35,23 @@ spec:
     spec:
       containers:
         - name: jupyter
-          image: nechayut/jupyter-spark:1.0.0
+          image: jupyter/pyspark-notebook:python-3.11
           ports:
             - containerPort: 8888
             - containerPort: 4040
           env:
             - name: JUPYTER_ENABLE_LAB
               value: "yes"
+            # แก้ปัญหา Permission ในการเขียนไฟล์ลง Volume
+            - name: CHOWN_HOME
+              value: "yes"
+            - name: CHOWN_HOME_OPTS
+              value: "-R"
           volumeMounts:
             - name: jupyter-work
               mountPath: /home/jovyan/work
       volumes:
         - name: jupyter-work
           hostPath:
-            path: /data/jupyter # CHANGE THIS to your local path
+            path: /data/jupyter 
+            type: DirectoryOrCreate
