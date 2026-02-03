@@ -1,18 +1,17 @@
+# --- แก้ไข Service ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: spark-master
-  namespace : platform
-
+  name: spark-master-svc  # <--- เปลี่ยนชื่อตรงนี้ (เดิมคือ spark-master)
 spec:
   type: NodePort
   ports:
     - port: 8080
       name: webui
-      nodePort: 31008 # External Access
+      nodePort: 31008
     - port: 7077
       name: master
-      nodePort: 31009 # External Access
+      nodePort: 31009
   selector:
     app: spark-master
 ---
@@ -33,7 +32,7 @@ spec:
       containers:
         - name: spark-master
           image: warvba22/spark:1.0.0  
-          command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
+          command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master-svc:7077"]
           ports:
             - containerPort: 7077
             - containerPort: 8080
